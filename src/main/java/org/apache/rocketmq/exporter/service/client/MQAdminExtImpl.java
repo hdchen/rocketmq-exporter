@@ -18,6 +18,7 @@ package org.apache.rocketmq.exporter.service.client;
 
 import com.google.common.base.Throwables;
 import org.apache.rocketmq.client.QueryResult;
+import org.apache.rocketmq.client.consumer.PullResult;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.impl.MQAdminImpl;
@@ -74,6 +75,11 @@ public class MQAdminExtImpl implements MQAdminExt {
     private Logger logger = LoggerFactory.getLogger(MQAdminExtImpl.class);
 
     public MQAdminExtImpl() {
+    }
+
+
+    public PullResult queryMsgByOffset(MessageQueue mq, long offset) throws Exception {
+        return MQAdminInstance.threadLocalMQPullConsumer().pull(mq, "*", offset, 1);
     }
 
     @Override

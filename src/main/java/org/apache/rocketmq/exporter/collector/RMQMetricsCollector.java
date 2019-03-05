@@ -48,6 +48,7 @@ public class RMQMetricsCollector extends Collector {
 
     private ConcurrentHashMap<ConsumerQueueMetric, Double>  groupGetLatency     = new ConcurrentHashMap<>();
 
+    private ConcurrentHashMap<ConsumerMetric, Double>  groupGetLatencyByStoreTime     = new ConcurrentHashMap<>();
 
     @Override
     public List<MetricFamilySamples> collect() {
@@ -123,6 +124,12 @@ public class RMQMetricsCollector extends Collector {
         }
         mfs.add(groupGetLatencyGauge);
 
+        GaugeMetricFamily groupGetLatencyByStoretimeGauge = new GaugeMetricFamily("group_get_latency_by_storetime", "GroupGetLatencyByStoreTime", Arrays.asList("cluster","broker","topic","group"));
+        for (Map.Entry<ConsumerMetric, Double> entry: groupGetLatencyByStoreTime.entrySet()) {
+            groupGetLatencyByStoretimeGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName(),entry.getKey().getConsumerGroupName()), entry.getValue());
+        }
+        mfs.add(groupGetLatencyByStoretimeGauge);
+
         return mfs;
     }
     public void AddTopicPutNumsMetric(String clusterName, String brokerName, String topic,  double value)
@@ -174,5 +181,10 @@ public class RMQMetricsCollector extends Collector {
     public void AddGroupGetLatencyMetric(String clusterName, String brokerName, String topic, String group, String queueId,double value) {
 
         groupGetLatency.put(new ConsumerQueueMetric(clusterName,brokerName,topic,group,queueId),value);
+    }
+
+    public void AddGroupGetLatencyByStoreTimeMetric(String clusterName, String brokerName, String topic, String group,double value) {
+
+        groupGetLatencyByStoreTime.put(new ConsumerMetric(clusterName,brokerName,topic,group),value);
     }
 }

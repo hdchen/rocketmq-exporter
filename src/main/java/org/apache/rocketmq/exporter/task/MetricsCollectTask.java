@@ -17,6 +17,8 @@
 package org.apache.rocketmq.exporter.task;
 
 import com.google.common.base.Throwables;
+import org.apache.rocketmq.client.consumer.PullResult;
+import org.apache.rocketmq.client.consumer.PullStatus;
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.admin.ConsumeStats;
 import org.apache.rocketmq.common.admin.OffsetWrapper;
@@ -32,6 +34,7 @@ import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 import org.apache.rocketmq.exporter.aspect.admin.annotation.MultiMQAdminCmdMethod;
 import org.apache.rocketmq.exporter.config.RMQConfigure;
 import org.apache.rocketmq.exporter.service.RMQMetricsService;
+import org.apache.rocketmq.exporter.service.client.MQAdminExtImpl;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 import org.apache.rocketmq.tools.admin.MQAdminExt;
 import org.slf4j.Logger;
@@ -179,43 +182,27 @@ public class MetricsCollectTask {
                                     try {
                                         bsd = mqAdminExt.viewBrokerStatsData(masterAddr, BrokerStatsManager.GROUP_GET_NUMS, statsKey);
                                         metricsService.getCollector().AddGroupGetNumsMetric(bd.getCluster(), bd.getBrokerName(), topic, group, bsd.getStatsMinute().getTps());
-                                    }
-                                    catch (Exception e) {
+                                    } catch (Exception e) {
                                         log.info("error is " + e.getMessage());
                                     }
                                     try {
                                         bsd = mqAdminExt.viewBrokerStatsData(masterAddr, BrokerStatsManager.GROUP_GET_SIZE, statsKey);
                                         metricsService.getCollector().AddGroupGetSizeMetric(bd.getCluster(), bd.getBrokerName(), topic, group, bsd.getStatsMinute().getTps());
-                                    }
-                                    catch (Exception e) {
+                                    } catch (Exception e) {
                                         log.info("error is " + e.getMessage());
                                     }
                                     try {
 
                                         bsd = mqAdminExt.viewBrokerStatsData(masterAddr, BrokerStatsManager.SNDBCK_PUT_NUMS, statsKey);
                                         metricsService.getCollector().AddsendBackNumsMetric(bd.getCluster(), bd.getBrokerName(), topic, group, bsd.getStatsMinute().getTps());
-                                    }
-                                    catch (Exception e) {
+                                    } catch (Exception e) {
                                         log.info("error is " + e.getMessage());
                                     }
-
-                                    ConsumeStats consumeStatus = mqAdminExt.examineConsumeStats(group, topic);
-                                    if (consumeStatus != null) {
-                                        Set<Map.Entry<MessageQueue,OffsetWrapper>> consumeStatusEntries = consumeStatus.getOffsetTable().entrySet();
-                                        for (Map.Entry<MessageQueue,OffsetWrapper> consumeStatusEntry : consumeStatusEntries) {
-                                            int queueId = consumeStatusEntry.getKey().getQueueId();
-                                            statsKey = String.format("%d@%s@%s", queueId, topic, group);
-                                            try {
-                                                bsd = mqAdminExt.viewBrokerStatsData(masterAddr, BrokerStatsManager.GROUP_GET_LATENCY, statsKey);
-                                                metricsService.getCollector().AddGroupGetLatencyMetric(bd.getCluster(), bd.getBrokerName(), topic, group, String.format("%d", queueId), bsd.getStatsMinute().getTps());
-                                            }
-                                            catch (Exception e) {
-                                                log.info("error is " + e.getMessage());
-                                            }
-
-                                        }
+                                    try {
+                                        collectLatencyMetrcisInner(topic, group, masterAddr, bd);
+                                    } catch (Exception e) {
+                                        log.info("error is " + e.getMessage());
                                     }
-
                                 } catch (Exception e) {
                                     log.info("error is " + e.getMessage());
                                 }
@@ -262,12 +249,52 @@ public class MetricsCollectTask {
                     } catch (Exception e) {
                         log.info("error is " + e.getMessage());
                     }
-
                 }
             }
         }
         catch (Exception err) {
             throw Throwables.propagate(err);
         }
+    }
+    private void collectLatencyMetrcisInner(String topic,String group,String masterAddr, BrokerData bd) throws Exception {
+        long maxLagTime = 0;
+        String statsKey;
+        BrokerStatsData bsd = null;
+        ConsumeStats consumeStatus = mqAdminExt.examineConsumeStats(group, topic);
+        Set<Map.Entry<MessageQueue, OffsetWrapper>> consumeStatusEntries = consumeStatus.getOffsetTable().entrySet();
+        for (Map.Entry<MessageQueue, OffsetWrapper> consumeStatusEntry : consumeStatusEntries) {
+            MessageQueue q = consumeStatusEntry.getKey();
+            OffsetWrapper offset = consumeStatusEntry.getValue();
+            int queueId = q.getQueueId();
+            statsKey = String.format("%d@%s@%s", queueId, topic, group);
+            try {
+                bsd = mqAdminExt.viewBrokerStatsData(masterAddr, BrokerStatsManager.GROUP_GET_LATENCY, statsKey);
+                metricsService.getCollector().AddGroupGetLatencyMetric(bd.getCluster(), bd.getBrokerName(), topic, group, String.format("%d", queueId), bsd.getStatsMinute().getTps());
+            } catch (Exception e) {
+                log.info("error is " + e.getMessage());
+            }
+            MQAdminExtImpl mqAdminImpl = (MQAdminExtImpl) mqAdminExt;
+            PullResult consumePullResult = mqAdminImpl.queryMsgByOffset(q, offset.getConsumerOffset());
+            long lagTime = 0;
+            if (consumePullResult != null && consumePullResult.getPullStatus() == PullStatus.FOUND) {
+                lagTime = System.currentTimeMillis() - consumePullResult.getMsgFoundList().get(0).getStoreTimestamp();
+                if (offset.getBrokerOffset() == offset.getConsumerOffset()) {
+                    lagTime = 0;
+                }
+            } else if (consumePullResult.getPullStatus() == PullStatus.NO_MATCHED_MSG) {
+                lagTime = 0;
+            } else if (consumePullResult.getPullStatus() == PullStatus.OFFSET_ILLEGAL) {
+                PullResult pullResult = mqAdminImpl.queryMsgByOffset(q, consumePullResult.getMinOffset());
+                if (pullResult != null && pullResult.getPullStatus() == PullStatus.FOUND) {
+                    lagTime = System.currentTimeMillis() - consumePullResult.getMsgFoundList().get(0).getStoreTimestamp();
+                }
+            } else {
+                lagTime = 0;
+            }
+            if (lagTime > maxLagTime) {
+                maxLagTime = lagTime;
+            }
+        }
+        metricsService.getCollector().AddGroupGetLatencyByStoreTimeMetric(bd.getCluster(), bd.getBrokerName(), topic, group, maxLagTime);
     }
 }

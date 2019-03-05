@@ -16,17 +16,26 @@
  */
 package org.apache.rocketmq.exporter.service.client;
 
+import org.apache.rocketmq.client.consumer.DefaultMQPullConsumer;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.impl.MQClientAPIImpl;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
+import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.remoting.RemotingClient;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExtImpl;
 import org.apache.rocketmq.tools.admin.MQAdminExt;
 import org.joor.Reflect;
 
+import static org.apache.rocketmq.common.MixAll.TOOLS_CONSUMER_GROUP;
+
+
 public class MQAdminInstance {
+
     private static final ThreadLocal<DefaultMQAdminExt> MQ_ADMIN_EXT_THREAD_LOCAL = new ThreadLocal<DefaultMQAdminExt>();
+
+    private static final ThreadLocal<DefaultMQPullConsumer> MQ_PULL_CONSUMER_THREAD_LOCAL = new ThreadLocal<DefaultMQPullConsumer>();
+
     private static final ThreadLocal<Integer> INIT_COUNTER = new ThreadLocal<Integer>();
 
     public static MQAdminExt threadLocalMQAdminExt() {
@@ -36,6 +45,16 @@ public class MQAdminInstance {
         }
         return defaultMQAdminExt;
     }
+
+
+    public static DefaultMQPullConsumer threadLocalMQPullConsumer() {
+        DefaultMQPullConsumer pullConsumer = MQ_PULL_CONSUMER_THREAD_LOCAL.get();
+        if (pullConsumer == null) {
+            throw new IllegalStateException("pullConsumer should be init before you get this");
+        }
+        return pullConsumer;
+    }
+
 
     public static RemotingClient threadLocalRemotingClient() {
         MQClientInstance mqClientInstance = threadLocalMqClientInstance();
@@ -58,9 +77,19 @@ public class MQAdminInstance {
             else {
                 defaultMQAdminExt = new DefaultMQAdminExt();
             }
-            defaultMQAdminExt.setInstanceName(Long.toString(System.currentTimeMillis()));
+            defaultMQAdminExt.setInstanceName("admin-" + Long.toString(System.currentTimeMillis()));
             defaultMQAdminExt.start();
             MQ_ADMIN_EXT_THREAD_LOCAL.set(defaultMQAdminExt);
+
+
+            DefaultMQPullConsumer   pullConsumer;
+            pullConsumer    =   new DefaultMQPullConsumer(TOOLS_CONSUMER_GROUP,null);
+            pullConsumer.setInstanceName("consumer-" + Long.toString(System.currentTimeMillis()));
+            pullConsumer.setNamesrvAddr(System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV)));
+            pullConsumer.start();
+            pullConsumer.getDefaultMQPullConsumerImpl().getPullAPIWrapper().setConnectBrokerByUser(true);
+
+            MQ_PULL_CONSUMER_THREAD_LOCAL.set(pullConsumer);
             INIT_COUNTER.set(1);
         }
         else {
@@ -77,6 +106,11 @@ public class MQAdminInstance {
         }
         MQAdminExt mqAdminExt = MQ_ADMIN_EXT_THREAD_LOCAL.get();
         if (mqAdminExt != null) {
+            DefaultMQPullConsumer consumer = MQ_PULL_CONSUMER_THREAD_LOCAL.get();
+            if (consumer != null) {
+                consumer.shutdown();
+                MQ_PULL_CONSUMER_THREAD_LOCAL.remove();
+            }
             mqAdminExt.shutdown();
             MQ_ADMIN_EXT_THREAD_LOCAL.remove();
             INIT_COUNTER.remove();
