@@ -27,6 +27,7 @@
 		<surefire.version>2.19.1</surefire.version>
 		<aspectj.version>1.8.9</aspectj.version>
 		<main.basedir>${basedir}/../..</main.basedir>
+		<docker.image.prefix>docker.io</docker.image.prefix>
 	</properties>
 
 	<dependencies>
@@ -118,7 +119,7 @@
 				<artifactId>docker-maven-plugin</artifactId>
 				<version>0.4.11</version>
 				<configuration>
-					<imageName>${project.artifactId}</imageName>
+					<imageName>${docker.image.prefix}/${project.artifactId}</imageName>
 					<dockerDirectory>src/main/docker</dockerDirectory>
 					<resources>
 						<resource>
