@@ -47,11 +47,11 @@ mvn clean install
 ### Build Docker Image
 
 ```shell
-make docker
+mvn package -Dmaven.test.skip=true docker:build
 ```
 
 
-It can be used directly instead of having to build the image yourself. ([Docker Hub danielqsj/kafka-exporter](https://hub.docker.com/r/danielqsj/kafka-exporter)\)
+It can be used directly instead of having to build the image yourself. ([Docker Hub breezecoolyang/rocketmq-exporter](https://cloud.docker.com/repository/docker/breezecoolyang/rocketmq-exporter)\)
 
 Run
 ---
@@ -65,7 +65,7 @@ java -jar rocketmq-exporter-0.0.1-SNAPSHOT.jar
 ### Run Docker Image
 
 ```
-docker run -ti --rm -p 9308:9308 danielqsj/kafka-exporter --kafka.server=kafka:9092 [--kafka.server=another-server ...]
+docker container run -itd --rm  -p 5561:5557  breezecoolyang/rocketmq-exporter 
 ```
 
 Metrics
