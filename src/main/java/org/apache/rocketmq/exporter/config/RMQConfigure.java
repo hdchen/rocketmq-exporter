@@ -31,6 +31,9 @@ import static org.apache.rocketmq.client.ClientConfig.SEND_MESSAGE_WITH_VIP_CHAN
 @ConfigurationProperties(prefix = "rocketmq.config")
 public class RMQConfigure {
 
+    public static final String ROCKETMQ_CONFIG_WEB_TELEMETRY_PATH= "rocketmq.config.webTelemetryPath";
+    public static final String ROCKETMQ_CONFIG_ROCKETMQ_VERSION= "rocketmq.config.rocketmqVersion";
+
     private Logger logger = LoggerFactory.getLogger(RMQConfigure.class);
     //use rocketmq.namesrv.addr first,if it is empty,than use system proerty or system env
     private volatile String namesrvAddr = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
@@ -39,9 +42,9 @@ public class RMQConfigure {
 
     private boolean enableCollect;
 
-    private volatile String webTelemetryPath = "/metrics";
+    private volatile String webTelemetryPath = System.getProperty(ROCKETMQ_CONFIG_WEB_TELEMETRY_PATH, "/metrics");
 
-    private volatile String rocketmqVersion = "V4_3_2";
+    private volatile String rocketmqVersion = System.getProperty(ROCKETMQ_CONFIG_ROCKETMQ_VERSION, "V4_3_2");
 
     public String getNamesrvAddr() {
         return namesrvAddr;
@@ -76,6 +79,7 @@ public class RMQConfigure {
     public void setWebTelemetryPath(String webTelemetryPath) {
         if (StringUtils.isNotBlank(webTelemetryPath)) {
             this.webTelemetryPath = webTelemetryPath;
+            System.setProperty(ROCKETMQ_CONFIG_WEB_TELEMETRY_PATH, webTelemetryPath);
             logger.info("setWebTelemetryPath webTelemetryPath={}", webTelemetryPath);
         }
     }
@@ -87,6 +91,7 @@ public class RMQConfigure {
     public void setRocketmqVersion(String rocketmqVersion) {
         if (StringUtils.isNotBlank(rocketmqVersion)) {
             this.rocketmqVersion = rocketmqVersion;
+            System.setProperty(ROCKETMQ_CONFIG_ROCKETMQ_VERSION, rocketmqVersion);
             logger.info("setRocketmqVersion rocketmqVersion={}", rocketmqVersion);
         }
     }
