@@ -39,7 +39,7 @@ public class RMQMetricsController {
     @Resource
     RMQMetricsService metricsService;
 
-    @RequestMapping("/metrics")
+    @RequestMapping(value = "${rocketmq.config.webTelemetryPath}")
     @ResponseBody
     private void metrics(HttpServletResponse response) throws IOException {
 

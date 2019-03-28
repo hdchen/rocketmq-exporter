@@ -55,42 +55,42 @@ public class RMQMetricsCollector extends Collector {
 
         List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
 
-        GaugeMetricFamily topicPutNumsGauge = new GaugeMetricFamily("producer_tps", "TopicPutNums", Arrays.asList("cluster","broker","topic"));
+        GaugeMetricFamily topicPutNumsGauge = new GaugeMetricFamily("rocketmq_producer_tps", "TopicPutNums", Arrays.asList("cluster","broker","topic"));
         for (Map.Entry<ProducerMetric,Double> entry:topicPutNums.entrySet()) {
             topicPutNumsGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName()), entry.getValue());
         }
         mfs.add(topicPutNumsGauge);
 
 
-        GaugeMetricFamily topicPutSizeGauge = new GaugeMetricFamily("producer_put_size", "TopicPutSize", Arrays.asList("cluster","broker","topic"));
+        GaugeMetricFamily topicPutSizeGauge = new GaugeMetricFamily("rocketmq_producer_put_size", "TopicPutSize", Arrays.asList("cluster","broker","topic"));
         for (Map.Entry<ProducerMetric, Double> entry: topicPutSize.entrySet()) {
             topicPutSizeGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName()), entry.getValue());
         }
         mfs.add(topicPutSizeGauge);
 
 
-        CounterMetricFamily topicOffsetGauge = new CounterMetricFamily("producer_offset", "TopicOffset", Arrays.asList("cluster","broker","topic"));
+        CounterMetricFamily topicOffsetGauge = new CounterMetricFamily("rocketmq_producer_offset", "TopicOffset", Arrays.asList("cluster","broker","topic"));
         for (Map.Entry<ProducerMetric, Double> entry: topicOffset.entrySet()) {
             topicOffsetGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName()), entry.getValue());
         }
         mfs.add(topicOffsetGauge);
 
 
-        GaugeMetricFamily brokerPutNumsGauge = new GaugeMetricFamily("broker_tps", "BrokerPutNums", Arrays.asList("cluster","broker"));
+        GaugeMetricFamily brokerPutNumsGauge = new GaugeMetricFamily("rocketmq_broker_tps", "BrokerPutNums", Arrays.asList("cluster","broker"));
         for (Map.Entry<BrokerMetric, Double> entry: brokerPutNums.entrySet()) {
             brokerPutNumsGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName()), entry.getValue());
         }
         mfs.add(brokerPutNumsGauge);
 
 
-        GaugeMetricFamily brokerGetNumsGauge = new GaugeMetricFamily("broker_qps", "BrokerGetNums", Arrays.asList("cluster","broker"));
+        GaugeMetricFamily brokerGetNumsGauge = new GaugeMetricFamily("rocketmq_broker_qps", "BrokerGetNums", Arrays.asList("cluster","broker"));
         for (Map.Entry<BrokerMetric, Double> entry: brokerGetNums.entrySet()) {
             brokerGetNumsGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName()), entry.getValue());
         }
         mfs.add(brokerGetNumsGauge);
 
 
-        GaugeMetricFamily groupGetNumsGauge = new GaugeMetricFamily("consumer_tps", "GroupGetNums", Arrays.asList("cluster","broker","topic","group"));
+        GaugeMetricFamily groupGetNumsGauge = new GaugeMetricFamily("rocketmq_consumer_tps", "GroupGetNums", Arrays.asList("cluster","broker","topic","group"));
         for (Map.Entry<ConsumerMetric, Double> entry: groupGetNums.entrySet()) {
             groupGetNumsGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName(),entry.getKey().getConsumerGroupName()), entry.getValue());
         }
@@ -98,33 +98,33 @@ public class RMQMetricsCollector extends Collector {
         mfs.add(groupGetNumsGauge);
 
 
-        GaugeMetricFamily groupGetSizeGauge = new GaugeMetricFamily("consumer_get_size", "GroupGetSize", Arrays.asList("cluster","broker","topic","group"));
+        GaugeMetricFamily groupGetSizeGauge = new GaugeMetricFamily("rocketmq_consumer_get_size", "GroupGetSize", Arrays.asList("cluster","broker","topic","group"));
         for (Map.Entry<ConsumerMetric, Double> entry: groupGetSize.entrySet()) {
             groupGetSizeGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName(),entry.getKey().getConsumerGroupName()), entry.getValue());
         }
         mfs.add(groupGetSizeGauge);
 
-        CounterMetricFamily groupOffsetGauge = new CounterMetricFamily("consumer_offset", "GroupOffset", Arrays.asList("cluster","broker","topic","group"));
+        CounterMetricFamily groupOffsetGauge = new CounterMetricFamily("rocketmq_consumer_offset", "GroupOffset", Arrays.asList("cluster","broker","topic","group"));
         for (Map.Entry<ConsumerMetric, Double> entry: groupOffset.entrySet()) {
             groupOffsetGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName(),entry.getKey().getConsumerGroupName()), entry.getValue());
         }
         mfs.add(groupOffsetGauge);
 
 
-        GaugeMetricFamily sendBackNumsGauge = new GaugeMetricFamily("send_back_nums", "SendBackNums", Arrays.asList("cluster","broker","topic","group"));
+        GaugeMetricFamily sendBackNumsGauge = new GaugeMetricFamily("rocketmq_send_back_nums", "SendBackNums", Arrays.asList("cluster","broker","topic","group"));
         for (Map.Entry<ConsumerMetric, Double> entry: sendBackNums.entrySet()) {
             sendBackNumsGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName(),entry.getKey().getConsumerGroupName()), entry.getValue());
         }
         mfs.add(sendBackNumsGauge);
 
 
-        GaugeMetricFamily groupGetLatencyGauge = new GaugeMetricFamily("group_get_latency", "GroupGetLatency", Arrays.asList("cluster","broker","topic","group","queueid"));
+        GaugeMetricFamily groupGetLatencyGauge = new GaugeMetricFamily("rocketmq_group_get_latency", "GroupGetLatency", Arrays.asList("cluster","broker","topic","group","queueid"));
         for (Map.Entry<ConsumerQueueMetric, Double> entry: groupGetLatency.entrySet()) {
             groupGetLatencyGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName(),entry.getKey().getConsumerGroupName(),entry.getKey().getQueueId()), entry.getValue());
         }
         mfs.add(groupGetLatencyGauge);
 
-        GaugeMetricFamily groupGetLatencyByStoretimeGauge = new GaugeMetricFamily("group_get_latency_by_storetime", "GroupGetLatencyByStoreTime", Arrays.asList("cluster","broker","topic","group"));
+        GaugeMetricFamily groupGetLatencyByStoretimeGauge = new GaugeMetricFamily("rocketmq_group_get_latency_by_storetime", "GroupGetLatencyByStoreTime", Arrays.asList("cluster","broker","topic","group"));
         for (Map.Entry<ConsumerMetric, Double> entry: groupGetLatencyByStoreTime.entrySet()) {
             groupGetLatencyByStoretimeGauge.addMetric(Arrays.asList(entry.getKey().getClusterName(),entry.getKey().getBrokerName(),entry.getKey().getTopicName(),entry.getKey().getConsumerGroupName()), entry.getValue());
         }
