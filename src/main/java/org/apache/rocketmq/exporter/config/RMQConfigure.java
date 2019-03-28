@@ -39,6 +39,10 @@ public class RMQConfigure {
 
     private boolean enableCollect;
 
+    private volatile String webTelemetryPath = "/metrics";
+
+    private volatile String rocketmqVersion = "V4_3_2";
+
     public String getNamesrvAddr() {
         return namesrvAddr;
     }
@@ -67,5 +71,27 @@ public class RMQConfigure {
     }
     public void setEnableCollect(boolean enableCollect) {
         this.enableCollect = enableCollect;
+    }
+
+    public void setWebTelemetryPath(String webTelemetryPath) {
+        if (StringUtils.isNotBlank(webTelemetryPath)) {
+            this.webTelemetryPath = webTelemetryPath;
+            logger.info("setWebTelemetryPath webTelemetryPath={}", webTelemetryPath);
+        }
+    }
+
+    public String getWebTelemetryPath() {
+        return webTelemetryPath;
+    }
+
+    public void setRocketmqVersion(String rocketmqVersion) {
+        if (StringUtils.isNotBlank(rocketmqVersion)) {
+            this.rocketmqVersion = rocketmqVersion;
+            logger.info("setRocketmqVersion rocketmqVersion={}", rocketmqVersion);
+        }
+    }
+
+    public String getRocketmqVersion() {
+        return rocketmqVersion;
     }
 }
