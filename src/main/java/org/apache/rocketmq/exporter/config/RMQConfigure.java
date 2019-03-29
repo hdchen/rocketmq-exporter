@@ -31,8 +31,8 @@ import static org.apache.rocketmq.client.ClientConfig.SEND_MESSAGE_WITH_VIP_CHAN
 @ConfigurationProperties(prefix = "rocketmq.config")
 public class RMQConfigure {
 
-    public static final String ROCKETMQ_CONFIG_WEB_TELEMETRY_PATH= "rocketmq.config.webTelemetryPath";
-    public static final String ROCKETMQ_CONFIG_ROCKETMQ_VERSION= "rocketmq.config.rocketmqVersion";
+    public static final String ROCKETMQ_CONFIG_WEB_TELEMETRY_PATH = "rocketmq.config.webTelemetryPath";
+    public static final String ROCKETMQ_CONFIG_ROCKETMQ_VERSION = "rocketmq.config.rocketmqVersion";
 
     private Logger logger = LoggerFactory.getLogger(RMQConfigure.class);
     //use rocketmq.namesrv.addr first,if it is empty,than use system proerty or system env
